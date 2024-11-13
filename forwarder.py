@@ -9,8 +9,8 @@ bot_token = os.getenv("BOT_TOKEN")
 api_id = os.getenv("API_ID")
 api_hash = os.getenv("API_HASH")
 
-group_username = 'gudangpilemsubtitleindo' # group gudangn subtitle indonesia
-user_to = 'seriusinibot' # ini bot yang mau store file id.
+group_username = "gudangpilemsubtitleindo"  # group gudangn subtitle indonesia
+user_to = "seriusinibot"  # ini bot yang mau store file id.
 
 
 session_name = "iuploadyou"
@@ -29,7 +29,9 @@ client = TelegramClient(session_name, api_id, api_hash)
 #         dummy_group, message='text_message', file=document, link_preview=True, supports_streaming=True
 #     )
 
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.WARNING, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 async def main():
@@ -37,23 +39,28 @@ async def main():
 
     async def send_video(document: types.InputDocument, message: str):
         return await client.send_message(
-            user_to, message=message, file=document, link_preview=True, supports_streaming=True
+            user_to,
+            message=message,
+            file=document,
+            link_preview=True,
+            supports_streaming=True,
         )
 
     # Get the group entity
     group = await client.get_entity(group_username)
     # print(group)
 
-
     try:
         # Fetch the last message from the group
-        last_message = await client.get_messages(group, limit=1)  # Get the most recent message
+        last_message = await client.get_messages(
+            group, limit=1
+        )  # Get the most recent message
 
         if last_message:
             print(f"Last Message ID: {last_message[0].id}")
             for i in range(last_message[0].id):
-                message = await client.get_messages(group, ids=i+1)
-                i+=1
+                message = await client.get_messages(group, ids=i + 1)
+                i += 1
 
                 # List to hold video IDs and access hashes
                 video_info = []
@@ -61,10 +68,10 @@ async def main():
                 # print(message, '\n')
                 # print('true' if message else 'not true')
                 if message:
-                    print('\n')
+                    print("\n")
                     # print(message.to_dict())
                     try:
-                        print('ok' if message.video or message.media else 'not ok')
+                        print("ok" if message.video or message.media else "not ok")
 
                         try:
                             # print(message.to_dict())
@@ -73,27 +80,31 @@ async def main():
                             access_hash = message.media.document.access_hash
                             file_reference = message.media.document.file_reference
                             document = types.InputDocument(
-                                id=video_id, access_hash=access_hash, file_reference=file_reference
+                                id=video_id,
+                                access_hash=access_hash,
+                                file_reference=file_reference,
                             )
 
                             text = message.message
 
-                            filename = ''
+                            filename = ""
                             for attribute in message.media.document.attributes:
-                                if attribute.to_dict()['_'] == 'DocumentAttributeFilename':
-                                    filename = attribute.to_dict()['file_name']
-
+                                if (
+                                    attribute.to_dict()["_"]
+                                    == "DocumentAttributeFilename"
+                                ):
+                                    filename = attribute.to_dict()["file_name"]
 
                             print(filename, text)
                             await send_video(document, text)
                             video_info.append((video_id, access_hash))
                             # print(f"Video ID: {video_id}, Access Hash: {access_hash}")
 
-
                             # input()
                         except Exception as e:
                             logging.warning(e)
-                    except:continue
+                    except:
+                        continue
                     time.sleep(3)
 
                 # print(message)
@@ -118,7 +129,6 @@ async def main():
                 #                 if attribute.to_dict()['_'] == 'DocumentAttributeFilename':
                 #                     filename = attribute.to_dict()['file_name']
 
-
                 #             # await send_video(document)
                 #             # video_info.append((video_id, access_hash))
                 #             # print(f"Video ID: {video_id}, Access Hash: {access_hash}")
@@ -128,7 +138,7 @@ async def main():
                 #             input()
                 #         except Exception as e:
                 #             ic(e)
-        
+
         else:
             print("No messages found in the group.")
 
@@ -143,6 +153,6 @@ async def main():
     # client.run_until_disconnected()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     with client:
         client.loop.run_until_complete(main())

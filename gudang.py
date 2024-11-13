@@ -1,5 +1,5 @@
 import os, io
-import re
+import re, json
 import datetime
 import jwt
 import requests, aiohttp
@@ -19,10 +19,18 @@ from telethon.tl.types import (
     InputWebDocument
 )
 
-# from telethon.utils import pack_bot_file_id
-# from imdb import get_movie_data
+dummy_data = {
+    "title": "",
+    "description": "",
+    "imdb_id": "",
+    "cover_url": "",
+    "magnet_url": "",
+    "is_uploaded": False,
+    "video_id": "",
+    "trailer_id": "",
+    "filename": ""
+}
 
-# Load environment variables
 load_dotenv()
 bot_token = os.getenv("BOT_TOKEN")
 api_id = os.getenv("API_ID")
@@ -32,10 +40,12 @@ admin_user = "u_p_l_o_a_d_e_r"
 SECRET_KEY = ""
 
 session_name = "seriusinibot"
+api_url = 'http://localhost:8001'
+
 # Initialize the Telegram client
 client = TelegramClient(session_name, api_id, api_hash)
 
-def make_filename_safe(filename: str, divider: str) -> str:
+def make_filename_safe(filename: str, divider: str):
     safe_name = re.sub(r"[^a-zA-Z0-9]", divider, filename)
     safe_name = re.sub(r"-+", "-", safe_name).strip("-")
     return safe_name
@@ -43,13 +53,13 @@ def make_filename_safe(filename: str, divider: str) -> str:
 # Function to create a JWT
 def create_jwt(data):
     expiration = datetime.datetime.utcnow() + datetime.timedelta(seconds=60)
-    token = jwt.encode(data, SECRET_KEY, algorithm="HS256")
+    token = jwt.encode(data, session_name, algorithm="HS256")
     return token
 
 # Function to read (decode) a JWT
 def read_jwt(token):
     try:
-        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        decoded = jwt.decode(token, session_name, algorithms=["HS256"])
         return decoded
     except jwt.ExpiredSignatureError:
         return "Token has expired"
@@ -61,7 +71,8 @@ def read_jwt(token):
 async def handler(event):
     # Check if the incoming message contains a video or document
     if event.message.video or event.message.document:
-        datas = {}
+        datas = dummy_data.copy()
+        video_data = {}
         document = event.message.document
 
         # Initialize filename variable
@@ -69,10 +80,10 @@ async def handler(event):
 
         # Store document ID and access_hash in datas
         if document.id:
-            datas["id"] = document.id
+            video_data["id"] = document.id
 
         if document.access_hash:
-            datas["access_hash"] = document.access_hash
+            video_data["access_hash"] = document.access_hash
 
         # Loop through the document attributes to find the filename
         for attribute in document.attributes:
@@ -81,14 +92,28 @@ async def handler(event):
                 break
 
         if filename:
-            print(f"Filename: {filename}")
-            datas["filename"] = filename
+            # print(f"Filename: {filename}")
+            video_data["filename"] = filename
+            datas['filename'] = filename
 
         else:
             print("No filename found in the document attributes.")
 
-        print('\n')
-        print(datas)
+
+        video_id = create_jwt(video_data)
+        title = make_filename_safe(datas.get('filename'), ' ').strip()
+
+        datas['video_id'], datas['title'], datas['filename'] = video_id, title.title(), filename
+
+        
+
+        # print('\n')
+        # print(f"Judulnya barangkali '{title}'")
+        # print(datas)
+
+        post_response = requests.post(f"{api_url}/items/", json=datas)
+        post_response.raise_for_status()
+        print(json.dumps(post_response.json(), indent=4))
 
 if __name__ == "__main__":
     with client:
