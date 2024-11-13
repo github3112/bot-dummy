@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .  # Use the current directory
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - gudangindovolume:/app  # Use the existing Docker volume
+
+volumes:
+  gudangindovolume:
+    external: true  # Indicate that the volume is external

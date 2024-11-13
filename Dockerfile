@@ -7,11 +7,11 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . .
 
-# Install the necessary dependencies
-RUN pip install -r requirements.txt
+# Install the required packages
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the app runs on
+# Expose the port the FastAPI app runs on
 EXPOSE 8001
 
-# Command to run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+# Start both applications using a shell command
+CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port 8001 & python gudangin.py"]
