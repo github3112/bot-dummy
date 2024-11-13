@@ -31,9 +31,9 @@ api_hash = os.getenv("API_HASH")
 admin_user = "u_p_l_o_a_d_e_r"
 SECRET_KEY = ""
 
-
+session_name = "seriusinibot"
 # Initialize the Telegram client
-client = TelegramClient("seriusinibot", api_id, api_hash)
+client = TelegramClient(session_name, api_id, api_hash)
 
 def make_filename_safe(filename: str, divider: str) -> str:
     safe_name = re.sub(r"[^a-zA-Z0-9]", divider, filename)

@@ -13,8 +13,10 @@ group_username = 'gudangpilemsubtitleindo' # group gudangn subtitle indonesia
 user_to = 'seriusinibot' # ini bot yang mau store file id.
 
 
+session_name = "iuploadyou"
+
 # Create the Telegram client
-client = TelegramClient("iuploadyou", api_id, api_hash)
+client = TelegramClient(session_name, api_id, api_hash)
 
 # async def list_dialogs():
 #     await client.start()
