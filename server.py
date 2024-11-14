@@ -19,6 +19,7 @@ class Item(BaseModel):
     video_id: str
     trailer_id: str
     filename: str
+    owner: str
 
 def create_connection():
     conn = None
@@ -43,7 +44,8 @@ def init_db():
                 is_uploaded BOOLEAN NOT NULL,
                 video_id TEXT NOT NULL,
                 trailer_id TEXT NOT NULL,
-                filename TEXT NOT NULL
+                filename TEXT NOT NULL,
+                owner TEXT NOT NULL
             )
         ''')
         conn.commit()
@@ -70,9 +72,9 @@ async def create_item(item: Item):
                     raise HTTPException(status_code=400, detail="Item exists.")
 
                 cursor.execute('''
-                    INSERT INTO items (title, description, imdb_id, cover_url, magnet_url, is_uploaded, video_id, trailer_id, filename)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (item.title, item.description, item.imdb_id, item.cover_url, item.magnet_url, item.is_uploaded, item.video_id, item.trailer_id, item.filename))
+                    INSERT INTO items (title, description, imdb_id, cover_url, magnet_url, is_uploaded, video_id, trailer_id, filename, owner)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (item.title, item.description, item.imdb_id, item.cover_url, item.magnet_url, item.is_uploaded, item.video_id, item.trailer_id, item.filename, item.owner))
                 conn.commit()
                 conn.close()
                 return {"id": cursor.lastrowid, **item.model_dump()}
@@ -102,7 +104,7 @@ async def update_item(filename: str, item: Item):
                 if not existing_item:
                     raise HTTPException(status_code=404, detail="Item not found.")
 
-                cursor.execute('''UPDATE items SET title = ?, description = ?, cover_url = ?, magnet_url = ?, is_uploaded = ?, video_id = ?, trailer_id = ? WHERE filename = ?''', (item.title, item.description, item.cover_url, item.magnet_url, item.is_uploaded, item.video_id, item.trailer_id, filename))
+                cursor.execute('''UPDATE items SET title = ?, description = ?, cover_url = ?, magnet_url = ?, is_uploaded = ?, video_id = ?, trailer_id = ?, owner = ? WHERE filename = ? AND owner = ?''', (item.title, item.description, item.cover_url, item.magnet_url, item.is_uploaded, item.video_id, item.trailer_id, filename, item.owner))
                 conn.commit()
                 conn.close()
                 return {"message": "Item updated successfully."}
@@ -136,7 +138,8 @@ async def read_item_by_filename(filename: str):
                 "is_uploaded": row[6],
                 "video_id": row[7],
                 "trailer_id": row[8],
-                "filename": row[9]
+                "filename": row[9],
+                "owner": row[10]
             }
         else:
             raise HTTPException(status_code=404, detail="Item not found")
@@ -164,7 +167,8 @@ async def read_item_by_id(id: int):
                     "is_uploaded": row[6],
                     "video_id": row[7],
                     "trailer_id": row[8],
-                    "filename": row[9]
+                    "filename": row[9],
+                    "owner": row[10]
                 }
             else:
                 raise HTTPException(status_code=404, detail="Item not found")
@@ -193,7 +197,8 @@ async def read_item_by_imdb_id(imdb_id: str):
                 "is_uploaded": row[6],
                 "video_id": row[7],
                 "trailer_id": row[8],
-                "filename": row[9]
+                "filename": row[9],
+                "owner": row[10]
             }
         else:
             raise HTTPException(status_code=404, detail="Item not found")
@@ -221,7 +226,8 @@ async def read_items_by_description(description: str):
                     "is_uploaded": row[6],
                     "video_id": row[7],
                     "trailer_id": row[8],
-                    "filename": row[9]
+                    "filename": row[9],
+                    "owner": row[10]
                 }
                 for row in rows
             ]
@@ -251,7 +257,8 @@ async def read_items_if_uploaded():
                     "is_uploaded": row[6],
                     "video_id": row[7],
                     "trailer_id": row[8],
-                    "filename": row[9]
+                    "filename": row[9],
+                    "owner": row[10]
                 }
                 for row in rows
             ]
@@ -282,7 +289,8 @@ async def search_items_subquery(substring: str):
                     "is_uploaded": row[6],
                     "video_id": row[7],
                     "trailer_id": row[8],
-                    "filename": row[9]
+                    "filename": row[9],
+                    "owner": row[10]
                 }
                 for row in rows
             ]

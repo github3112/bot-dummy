@@ -28,7 +28,8 @@ dummy_data = {
     "is_uploaded": False,
     "video_id": "",
     "trailer_id": "",
-    "filename": ""
+    "filename": "",
+    "owner":""
 }
 
 load_dotenv()
@@ -49,6 +50,9 @@ def make_filename_safe(filename: str, divider: str):
     safe_name = re.sub(r"[^a-zA-Z0-9]", divider, filename)
     safe_name = re.sub(r"-+", "-", safe_name).strip("-")
     return safe_name
+
+def normalize_spaces(text: str):
+    return ' '.join(text.split())
 
 # Function to create a JWT
 def create_jwt(data):
@@ -77,6 +81,11 @@ async def handler(event):
 
         # Initialize filename variable
         filename = None
+        text = event.message.message
+
+        if text:
+            datas['description'] = text
+        else: print('no caption.')
 
         # Store document ID and access_hash in datas
         if document.id:
@@ -102,9 +111,12 @@ async def handler(event):
 
         video_id = create_jwt(video_data)
         title = make_filename_safe(datas.get('filename'), ' ').strip()
+        description = make_filename_safe(datas.get('description'), ' ').strip()
+        description = normalize_spaces(description)
 
-        datas['video_id'], datas['title'], datas['filename'] = video_id, title.title(), filename
+        datas['video_id'], datas['title'], datas['filename'], datas['owner'], datas['description'] = video_id, title.title(), filename, session_name, description
 
+        datas['is_uploaded'] = True
         
 
         # print('\n')
